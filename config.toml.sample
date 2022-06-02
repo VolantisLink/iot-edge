@@ -1,0 +1,23 @@
+device_id = "test"
+
+[can]
+frequency = 100
+
+[gps]
+host = "127.0.0.1"
+port = 2947
+
+[log]
+path = "logs/iot-edge.log"
+rotate_size = "1000M" 
+rotate_keep = 7
+rotate_compress = false 
+include_success = true
+
+[mqtt]
+host = "127.0.0.1"
+port = 1883
+topic = "hello/test"
+encoder = "BINARY"
+chunk_size = 2048
+chunk_period = 5
