@@ -18,6 +18,8 @@ iot-edge是一个IoT网关应用，通过串行端口、GPIO、I2C与Volantis终
   + [x] GPS/GNSS
   + [ ] 加速度
   + [ ] 温度
+  + [ ] socketcan过滤器
 - [-] 数据上传
   + [x] MQTT
   + [ ] S3(Minio)
+  + [ ] MQTT TLS + 认证

@@ -53,7 +53,9 @@ fn test_json() {
     use socketcan::dump::Reader;
 
     let input: &[u8] = b"(1469439874.299591) can1 080#\n\
-                        (1469439874.299654) can1 701#7F";
+                        (1469439874.299654) can1 701#7F\n\
+                        (1655098588.539359) can1 200#6A0000000000006A\n\
+                        (1655098589.035226) can1 202#A1000000000000A1";
 
     let mut reader = Reader::from_reader(input);
     for record in reader.records() {
@@ -75,6 +77,6 @@ fn test_json() {
         };
         println!("{:?}", msg);
         let s = serde_json::to_string(&msg).unwrap();
-        println!("{}", s);
+        println!("{}\n\n\n", s);
     }
 }
