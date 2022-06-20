@@ -10,7 +10,11 @@ iot-edge是一个IoT网关应用，通过串行端口、GPIO、I2C与Volantis终
 - 传输加密 -- IoT网关使用TLS协议保证数据传输的安全。
   + 开源版IoT网关使用标准TLS协议进行数据传输。
   + 企业版IoT网关支持兼容国密标准的安全数据传输。
-  
+
+## Build
+
+[BUILD](./docs/BUILD.md)
+
 ## Roadmap
 
 - [-] 数据收集

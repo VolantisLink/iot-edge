@@ -1,4 +1,4 @@
-FROM rustembedded/cross:armv5te-unknown-linux-musleabi-0.2.1
+FROM docker.io/rustembedded/cross:armv5te-unknown-linux-musleabi-0.2.1
 
 RUN apt update \
     && apt install -y capnproto

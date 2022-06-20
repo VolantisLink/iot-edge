@@ -18,6 +18,6 @@ include_success = true
 host = "127.0.0.1"
 port = 1883
 topic = "hello/test"
-encoder = "BINARY"
+encoder = "JSON"
 chunk_size = 2048
 chunk_period = 5
