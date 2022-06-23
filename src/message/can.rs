@@ -43,7 +43,7 @@ impl Serialize for CanMessage {
         S: Serializer,
     {
         let mut state = serializer.serialize_struct("CanMessage", 1)?;
-        state.serialize_field("dump", &String::from(self))?;
+        state.serialize_field("data", &String::from(self))?;
         state.end()
     }
 }
@@ -82,18 +82,15 @@ fn test_json() {
 }
 
 #[test]
-fn test_dbc() {
-    use canparse::pgn::{PgnLibrary, SpnDefinition, ParseMessage};
-    // Parse dbc file into PgnLibrary
-    let lib = PgnLibrary::from_dbc_file("../../dbc/j1939.dbc").unwrap();
+fn test_hashmap_generic() {
+    use std::collections::HashMap;
+    use std::fmt::Display;
 
-    // Pull signal definition for engine speed
-    let enginespeed_def: &SpnDefinition = lib
-        .get_spn("Engine_Speed").unwrap();
+    let mut map: HashMap<&str, Box<dyn Display>> = HashMap::new();
+    map.insert("a", Box::new("1".to_string()));
+    map.insert("b", Box::new(2));
 
-    // Parse frame containing engine speed
-    let msg: [u8; 8] = [0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88];
-    let engine_speed: f32 = enginespeed_def.parse_message(&msg).unwrap();
-
-    println!("Engine speed: {}", engine_speed);
+    for (key, value) in &map {
+        println!("{}: {}", key, value);
+    }
 }

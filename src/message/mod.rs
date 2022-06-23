@@ -21,29 +21,20 @@ pub enum Message {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Chunk {
-    time: DateTime<Local>,
-    time_offset: i32,
+    time: DateTime<Utc>,
     id: String,   // identifier for this chunk
     messages: Vec<Message>,
-    synced: bool,
 }
 
 impl Chunk {
     pub fn new(id: &str, messages: Vec<Message>) -> Self {
-        let time = Local::now();
-        let time_offset = time.offset().local_minus_utc() / 3600;
+        let time = Utc::now();
 
         Chunk { 
             time, 
-            time_offset, 
             id: id.to_string(), 
             messages,
-            synced: true,
         }
-    }
-
-    pub fn set_synced(&mut self, synced: bool) {
-        self.synced = synced;
     }
 
     pub fn to_json(&self) -> String {
@@ -55,8 +46,7 @@ impl Chunk {
         let mut root = builder.init_root::<chunk_capnp::chunk::Builder>();
 
         root.set_id(&self.id);
-        root.set_time_sent((self.time.timestamp_nanos() as f64) / 1000_000_000f64);
-        root.set_time_offset(self.time_offset);
+        root.set_time((self.time.timestamp_nanos() as f64) / 1000_000_000f64);
 
         let mut entries = root.init_entries(self.messages.len() as u32);        
         for (pos, msg) in self.messages.iter().enumerate() {
@@ -97,24 +87,37 @@ impl Chunk {
 
 #[test]
 fn test_json() {
+    use socketcan::dump::Reader;
     use chrono::prelude::*;
 
+    let mut messages = Vec::new();
     let gps = GpsMessage {
         time: Utc::now(),
         latitude: 0.1,
         longitude: -0.1,
         speed: 100.0,
     };
+    let gps_msg = Message::GPS(gps);
+    messages.push(gps_msg);
 
-    let msg = Message::GPS(gps);
-    let messages = vec![msg];
+    let input: &[u8] = b"(1655098589.035226) can1 202#A1000000000000A1";
+    let mut reader = Reader::from_reader(input);
+    for record in reader.records() {
+        let r = record.unwrap();
+        let ts = Utc::now();
+        let msg = CanMessage {
+            time: ts,
+            channel: "can1".to_string(),
+            frame: r.1,
+        };
+        let can_msg = Message::CAN(msg);
+        messages.push(can_msg);
+    }
 
     let line = Chunk {
-        time: Local::now(),
-        time_offset: 8,
+        time: Utc::now(),
         id: "test".to_string(),
-        messages: messages,
-        synced: false,
+        messages,
     };
     let line_str = serde_json::to_string(&line).unwrap();
     println!("{}", line_str);

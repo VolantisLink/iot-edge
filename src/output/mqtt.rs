@@ -6,8 +6,7 @@ use rumqttc::{
     EventLoop, 
     Publish, 
     Request,
-    Event,
-    Packet,
+    ConnectionError,
 };
 
 use crate::config::ConfigMqtt;
@@ -41,30 +40,20 @@ impl MqttOutput {
 
         let request = Request::Publish(publish);
         let tx = self.eventloop.handle();
-        match tx.send(request).await {
+        match tx.send_async(request).await {
             Ok(_) => Ok(pkid),
             Err(_) => Err(IotEdgeError::MqttPubAckError),
         }
     }
 
-    pub async fn ack(&mut self) -> Option<u16> {
+    pub async fn ack(&mut self) -> Result<(), ConnectionError> {
         match self.eventloop.poll().await {
             Ok(event) => {
                 debug!("Received = {:?}", event);
-                if let Event::Incoming(incoming) = event {
-                    if let Packet::PubAck(ack) = incoming {
-                        Some(ack.pkid)
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
+                Ok(())
             },
             Err(e) => {
-                debug!("Error = {:?}", e);
-
-                None
+                Err(e)
             }
         }
     }
