@@ -1,3 +1,0 @@
-click
-paho-mqtt
-pycapnp
