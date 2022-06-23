@@ -2,9 +2,8 @@
 
 struct Chunk {
     id @0 :Text;
-    timeSent @1 :Float64;
-    timeOffset @2 :Int32;
-    entries @3 :List(Entry);
+    time @1 :Float64;
+    entries @2 :List(Entry);
 
     struct Entry {
         time @0 :Float64;

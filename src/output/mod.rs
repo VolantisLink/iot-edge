@@ -1,4 +1,4 @@
-use std::collections::hash_map::HashMap;
+use log::error;
 use tokio::time::{self, Duration};
 use chrono::prelude::*;
 
@@ -14,7 +14,9 @@ use tokio::{
         mpsc::Receiver,
     }
 };
-use crate::config::{ConfigMqtt, ConfigLog, Encoder};
+use crate::{
+    config::{ConfigMqtt, ConfigLog, Encoder},
+};
 use crate::message::{Message, Chunk};
 
 
@@ -26,8 +28,6 @@ pub struct Output {
 
     mqtt: MqttOutput,
     logger: FileLogger,
-    chunks: HashMap<u16, Chunk>,
-    times: Vec::<(DateTime<Local>, u16)>,
 }
 
 impl Output {
@@ -45,23 +45,22 @@ impl Output {
 
             mqtt,
             logger,
-            chunks: HashMap::<u16, Chunk>::new(),
-            times: Vec::<(DateTime<Local>, u16)>::new(),
         }
     }
 
     async fn send(&mut self, buf: Vec<Message>) {
-        let mut chunk: Chunk = Chunk::new(&self.id, buf);
+        let chunk: Chunk = Chunk::new(&self.id, buf);
+        let line = chunk.to_json();
+
+        self.logger.write(&line);
+
         let data = match self.mqtt_config.encoder {
             Encoder::BINARY => chunk.to_vec(),
-            Encoder::JSON => chunk.to_json().into_bytes(),
+            Encoder::JSON => line.into_bytes(),
         };
 
-        if let Ok(pkid) = self.mqtt.write(data).await {
-            self.chunks.insert(pkid, chunk);
-        } else {
-            chunk.set_synced(false);
-            self.logger.write(&chunk);
+        if let Err(e) = self.mqtt.write(data).await {
+            error!("{}", e);
         }
     }
 
@@ -83,18 +82,8 @@ impl Output {
                     }
                 }
                 ack = self.mqtt.ack() => {
-                    if let Some(pkid) = ack {
-                        self.times.retain(|(_, p)| {
-                            if *p == pkid {
-                                if let Some(chunk) = self.chunks.remove(p) {
-                                    self.logger.write(&chunk);
-                                }
-
-                                false
-                            } else {
-                                true
-                            }
-                        });
+                    if let Err(e) = ack {
+                        error!("{}", e);
                     }
                 }
                 _ = interval.tick() => { // tick
@@ -103,21 +92,7 @@ impl Output {
                         self.send(buf).await;
                         buf = Vec::new();
                         checkpoint = now;
-                    }
-                    
-                    self.times.retain(|(t, p)| {
-                        let dur = now.timestamp() - t.timestamp();
-                        if dur > 120 {
-                            if let Some(mut chunk) = self.chunks.remove(p) {
-                                chunk.set_synced(false);
-                                self.logger.write(&chunk);
-                            }
-
-                            false
-                        } else {
-                            true
-                        }
-                    });
+                    }                    
                 }
             }
         }

@@ -8,7 +8,6 @@ use file_rotate::{
 };
 use bytesize;
 
-use crate::message::Chunk;
 use crate::config::ConfigLog;
 
 pub struct FileLogger(FileRotate<AppendCount>);
@@ -28,9 +27,8 @@ impl From<&ConfigLog> for FileLogger {
 }
 
 impl FileLogger {
-    pub fn write(&mut self, chunk: &Chunk) {
-        let line_str = serde_json::to_string(chunk).unwrap();
-        writeln!(self.0, "{}", &line_str).unwrap();
+    pub fn write(&mut self, line: &str) {
+        writeln!(self.0, "{}", line).unwrap();
     }
 }
 
