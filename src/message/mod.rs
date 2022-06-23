@@ -2,7 +2,7 @@ use std::vec::Vec;
 use serde::Serialize;
 use chrono::prelude::*;
 use capnp::message::Builder;
-use capnp::serialize;
+use capnp::{serialize_packed, serialize};
 
 use crate::chunk_capnp;
 
@@ -78,7 +78,7 @@ impl Chunk {
         }
 
         let mut buf = Vec::new();
-        serialize::write_message_segments(&mut buf, &builder).unwrap();
+        serialize_packed::write_message(&mut buf, &builder).unwrap();
 
         buf
     }
@@ -151,7 +151,7 @@ fn test_capnp() {
     gps.set_speed(100.0);
 
     let mut buf = Vec::new();
-    serialize::write_message_segments(&mut buf, &message).unwrap();
+    serialize_packed::write_message(&mut buf, &message).unwrap();
 
     println!("{:?}", buf);
 }

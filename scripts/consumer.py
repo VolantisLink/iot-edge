@@ -1,6 +1,6 @@
-from email import message
-import os
 import sys
+import os
+import io
 import click
 import capnp
 import paho.mqtt.client as mqtt
@@ -10,7 +10,9 @@ from pathlib import Path
 current_dir = Path(os.path.abspath(__file__))
 SCHEMA = current_dir.absolute().parent.joinpath('..', 'schema', 'chunk.capnp')
 
+capnp.remove_import_hook()
 chunk = capnp.load(os.path.abspath(SCHEMA))
+print(dir(chunk.Chunk))
 
 def run(host, port, topic):
     def on_connect(client, userdata, flags, rc):
@@ -18,9 +20,8 @@ def run(host, port, topic):
         client.subscribe(topic)
 
     def on_message(client, userdata, data):
-        print(len(data.payload))
-        msg = chunk.Chunk.from_bytes(data.payload)
-        print(msg)
+        msg = chunk.Chunk.from_bytes_packed(data.payload)
+        print(msg.to_dict())
 
     client = mqtt.Client()
     client.on_connect = on_connect
