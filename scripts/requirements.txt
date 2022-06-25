@@ -1,4 +1,4 @@
 click
 paho-mqtt
 pycapnp
-prefect>=2.0b
+prefect

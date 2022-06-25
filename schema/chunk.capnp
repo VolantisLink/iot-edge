@@ -14,13 +14,14 @@ struct Chunk {
                 channel @2 :Text;
                 remote @3 :Bool;
                 error @4 :Bool;
-                length @5 :UInt8;
-                data @6 :Data;
+                extended @5 :Bool;
+                length @6 :UInt8;
+                data @7 :Data;
             }
             gps :group {
-                longitude @7 :Float64;
-                latitude @8 :Float64;
-                speed @9 :Float64;
+                longitude @8 :Float64;
+                latitude @9 :Float64;
+                speed @10 :Float64;
             }
         }
     }

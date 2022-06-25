@@ -2,7 +2,7 @@ use std::vec::Vec;
 use serde::Serialize;
 use chrono::prelude::*;
 use capnp::message::Builder;
-use capnp::{serialize_packed, serialize};
+use capnp::serialize_packed;
 
 use crate::chunk_capnp;
 
@@ -62,6 +62,7 @@ impl Chunk {
                     can.set_id(msg.frame.id());
                     can.set_error(msg.frame.is_error());
                     can.set_remote(msg.frame.is_rtr());
+                    can.set_extended(msg.frame.is_extended());
                     can.set_data(msg.frame.data());
                     can.set_length(msg.frame.data().len() as u8);
                 },

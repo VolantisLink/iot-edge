@@ -14,9 +14,7 @@ use tokio::{
         mpsc::Receiver,
     }
 };
-use crate::{
-    config::{ConfigMqtt, ConfigLog, Encoder},
-};
+use crate::config::{ConfigMqtt, ConfigLog, Encoder};
 use crate::message::{Message, Chunk};
 
 
