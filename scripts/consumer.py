@@ -34,7 +34,7 @@ def run(host, port, topic):
 @click.command()
 @click.option('--host', default='localhost', help='mqtt broker host')
 @click.option('--port', default=1883)
-@click.option('--topic', default='hello/test')
+@click.option('--topic', default='hello/test/capnp')
 def main(host, port, topic):
     """Simple program for test."""
     run(host, port, topic)

@@ -9,7 +9,7 @@ use rumqttc::{
     ConnectionError,
 };
 
-use crate::config::ConfigMqtt;
+use crate::config::{ConfigMqtt, Encoder};
 use crate::errors::IotEdgeError;
 
 pub struct MqttOutput {
@@ -27,8 +27,13 @@ impl MqttOutput {
         options.set_keep_alive(Duration::from_secs(5));
         let eventloop = EventLoop::new(options, 10);
 
+        let topic = match mqtt.encoder {
+            Encoder::BINARY => format!("{}/capnp", mqtt.topic),
+            Encoder::JSON => format!("{}/json", mqtt.topic)
+        };
+
         MqttOutput {
-            topic: mqtt.topic.clone(),
+            topic,
             eventloop
         }
     }
