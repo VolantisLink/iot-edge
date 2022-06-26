@@ -1,4 +1,5 @@
 click
 paho-mqtt
 pycapnp
-prefect
+can
+cantools

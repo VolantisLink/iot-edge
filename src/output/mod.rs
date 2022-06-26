@@ -10,9 +10,7 @@ pub use crate::output::mqtt::MqttOutput;
 
 use tokio::{
     select,
-    sync::{
-        mpsc::Receiver,
-    }
+    sync::mpsc::Receiver
 };
 use crate::config::{ConfigMqtt, ConfigLog, Encoder};
 use crate::message::{Message, Chunk};
@@ -46,10 +44,8 @@ impl Output {
         }
     }
 
-    async fn send(&mut self, buf: Vec<Message>) {
-        let chunk: Chunk = Chunk::new(&self.id, buf);
+    async fn send(&mut self, chunk: Chunk) {
         let line = chunk.to_json();
-
         self.logger.write(&line);
 
         let data = match self.mqtt_config.encoder {
@@ -63,19 +59,17 @@ impl Output {
     }
 
     pub async fn run(&mut self) {
-        let mut checkpoint = Local::now();
         let mut interval = time::interval(Duration::from_secs(1));
-        let mut buf = Vec::new();
 
+        let mut chunk = Chunk::new(&self.id);
         loop {
             select! {
                 msg = self.rx.recv() => {
                     if let Some(msg) = msg {
-                        buf.push(msg);
-                        if buf.len() >= self.mqtt_config.chunk_size {
-                            self.send(buf).await;
-                            buf = Vec::new();
-                            checkpoint = Local::now();
+                        chunk.push(msg);
+                        if chunk.len() >= self.mqtt_config.chunk_size {
+                            self.send(chunk).await;
+                            chunk = Chunk::new(&self.id);
                         } 
                     }
                 }
@@ -85,11 +79,10 @@ impl Output {
                     }
                 }
                 _ = interval.tick() => { // tick
-                    let now = Local::now();
-                    if (buf.len() > 0) & (now.timestamp() - checkpoint.timestamp() > self.mqtt_config.chunk_period) {
-                        self.send(buf).await;
-                        buf = Vec::new();
-                        checkpoint = now;
+                    let now = Utc::now();
+                    if (chunk.len() > 0) & (now.timestamp() - chunk.time.timestamp() > self.mqtt_config.chunk_period) {
+                        self.send(chunk).await;
+                        chunk = Chunk::new(&self.id);
                     }                    
                 }
             }
